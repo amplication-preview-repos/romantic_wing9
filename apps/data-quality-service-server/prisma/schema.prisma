@@ -1,0 +1,130 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DB_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model AppUser {
+  id        String             @id @default(cuid())
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+  roles     EnumAppUserRoles[]
+}
+
+model Database {
+  id                String                 @id @default(cuid())
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+  connectionDetails Json?
+  name              String?
+  description       String?
+  typeField         EnumDatabaseTypeField?
+  tables            Table[]
+}
+
+model Table {
+  id              String           @id @default(cuid())
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  name            String?
+  description     String?
+  creationDate    DateTime?
+  lastUpdate      DateTime?
+  owner           String?
+  database        Database?        @relation(fields: [databaseId], references: [id])
+  databaseId      String?
+  columns         Column[]
+  analysisResults AnalysisResult[]
+}
+
+model Column {
+  id                 String              @id @default(cuid())
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  dataType           EnumColumnDataType?
+  name               String?
+  isUnique           Boolean?
+  isNullable         Boolean?
+  table              Table?              @relation(fields: [tableId], references: [id])
+  tableId            String?
+  recipeColumnsItems RecipeColumns[]
+}
+
+model QualityRule {
+  id          String                   @id @default(cuid())
+  createdAt   DateTime                 @default(now())
+  updatedAt   DateTime                 @updatedAt
+  name        String?
+  description String?
+  ruleType    EnumQualityRuleRuleType?
+  script      String?
+  recipeSteps RecipeStep[]
+}
+
+model Recipe {
+  id              String           @id @default(cuid())
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  description     String?
+  creationDate    DateTime?
+  name            String?
+  owner           String?
+  recipeSteps     RecipeStep[]
+  analysisResults AnalysisResult[]
+}
+
+model RecipeStep {
+  id                 String          @id @default(cuid())
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  order              Int?
+  parameters         Json?
+  qualityRule        QualityRule?    @relation(fields: [qualityRuleId], references: [id])
+  qualityRuleId      String?
+  recipe             Recipe?         @relation(fields: [recipeId], references: [id])
+  recipeId           String?
+  recipeColumnsItems RecipeColumns[]
+}
+
+model AnalysisResult {
+  id             String    @id @default(cuid())
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  executionDate  DateTime?
+  resultData     Json?
+  issuesFound    Int?
+  appliedFilters Json?
+  table          Table?    @relation(fields: [tableId], references: [id])
+  tableId        String?
+  recipe         Recipe?   @relation(fields: [recipeId], references: [id])
+  recipeId       String?
+}
+
+model RecipeColumns {
+  id           String      @id @default(cuid())
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  recipeStep   RecipeStep? @relation(fields: [recipeStepId], references: [id])
+  recipeStepId String?
+  column       Column?     @relation(fields: [columnId], references: [id])
+  columnId     String?
+}
+
+enum EnumAppUserRoles {
+  Option1
+}
+
+enum EnumDatabaseTypeField {
+  Option1
+}
+
+enum EnumColumnDataType {
+  Option1
+}
+
+enum EnumQualityRuleRuleType {
+  Option1
+}
