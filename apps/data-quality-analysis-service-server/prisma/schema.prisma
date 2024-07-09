@@ -1,0 +1,89 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DB_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Column {
+  id          String     @id @default(cuid())
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  dataType    String?
+  name        String?
+  dataTable   DataTable? @relation(fields: [dataTableId], references: [id])
+  dataTableId String?
+  columnStats Json?
+}
+
+model DataTable {
+  id               String            @id @default(cuid())
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  description      String?
+  name             String?
+  columns          Column[]
+  analysisResults  AnalysisResult[]
+  recipeExecutions RecipeExecution[]
+}
+
+model Recipe {
+  id               String               @id @default(cuid())
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  steps            Json?
+  typeField        EnumRecipeTypeField?
+  name             String?
+  analysisResults  AnalysisResult[]
+  recipeExecutions RecipeExecution[]
+}
+
+model AnalysisResult {
+  id          String     @id @default(cuid())
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  results     Json?
+  recipe      Recipe?    @relation(fields: [recipeId], references: [id])
+  recipeId    String?
+  dataTable   DataTable? @relation(fields: [dataTableId], references: [id])
+  dataTableId String?
+}
+
+model User {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  firstName String?
+  lastName  String?
+  username  String   @unique
+  email     String?  @unique
+  password  String
+  roles     Json
+}
+
+model RecipeSequence {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  name      String?
+  recipes   Json?
+}
+
+model RecipeExecution {
+  id          String     @id @default(cuid())
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  executedAt  DateTime?
+  results     Json?
+  isErrored   Boolean?
+  recipe      Recipe?    @relation(fields: [recipeId], references: [id])
+  recipeId    String?
+  dataTable   DataTable? @relation(fields: [dataTableId], references: [id])
+  dataTableId String?
+}
+
+enum EnumRecipeTypeField {
+  Option1
+}
